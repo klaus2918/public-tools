@@ -15,11 +15,11 @@
 
 | 资源类型 | 主链路 | 加速链路 |
 |----------|--------|----------|
-| 清单（`registry/*.json`） | `raw.githubusercontent.com` | jsDelivr CDN（`cdn.jsdelivr.net/gh/klaus2918/tools@main/...`） |
+| 清单（`registry/*.json`） | `raw.githubusercontent.com` | jsDelivr CDN（`cdn.jsdelivr.net/gh/klaus2918/public-tools@main/...`） |
 | 轻资产（`assets/`，< 20 MB） | raw | jsDelivr（国内节点友好） |
 | 重资产（Release 资产） | `github.com/.../releases/download/...` | `gh-proxy` / `ghfast` 等前缀 |
 
-**清单可零克隆获取**：`https://cdn.jsdelivr.net/gh/klaus2918/tools@main/registry/latest.json` 一条 GET 即可拿到全部最新资源坐标。
+**清单可零克隆获取**：`https://cdn.jsdelivr.net/gh/klaus2918/public-tools@main/registry/latest.json` 一条 GET 即可拿到全部最新资源坐标。
 
 ## 风险与对策
 
@@ -46,8 +46,8 @@
     { "id": "ghfast",  "tpl": "https://ghfast.top/{url}",       "enabled": false }
   ],
   "raw_prefixes": [
-    { "id": "jsdelivr", "tpl": "https://cdn.jsdelivr.net/gh/klaus2918/tools@{branch}/{path}", "enabled": true },
-    { "id": "raw",      "tpl": "https://raw.githubusercontent.com/klaus2918/tools/{branch}/{path}", "enabled": true }
+    { "id": "jsdelivr", "tpl": "https://cdn.jsdelivr.net/gh/klaus2918/public-tools@{branch}/{path}", "enabled": true },
+    { "id": "raw",      "tpl": "https://raw.githubusercontent.com/klaus2918/public-tools/{branch}/{path}", "enabled": true }
   ]
 }
 ```
@@ -63,7 +63,21 @@ node scripts/res.mjs mirror --test     # 实测各 release 镜像耗时并排序
 
 测速结果仅供参考（受网络波动影响），按结果调整 `enabled` 开关即可，无需改代码。
 
-## 私有仓库（当前启用）
+## 私有仓库模式（可选；当前仓库已切为公开）
+
+> 2026-09-13 起 `klaus2918/public-tools` 已切换为**公开**仓库：默认链路无需凭据、可用 CDN 与镜像回退。本节保留私有模式的适配方案，把 `config.repo.private` 置回 `true` 即自动生效。
+
+### 公开模式实测（切换后）
+
+| 项 | 结果 |
+|----|------|
+| 匿名 Range 下载 Release 资产 | **206**（私有模式时为 404） |
+| 完整下载 55.31 MB | **47 秒（≈1.2 MB/s，直连 `releases/download`）** |
+| jsDelivr 清单 `registry/latest.json` | **200**（CDN 恢复可用） |
+| `res verify --all` | 通过 |
+| `mirror --test` | gh-proxy 1139 ms / direct 1165 ms，均 HTTP 200 |
+
+### 私有模式适配方案
 
 `registry/config.json → repo.private: true` 时，镜像链路整体失效（第三方前缀无法携带认证），CLI 自动改走 GitHub API 端点：
 

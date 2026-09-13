@@ -6,12 +6,12 @@
   },
   "repo": {
     "owner": "klaus2918",
-    "name": "tools",
+    "name": "public-tools",
     "branch": "main",
-    "private": true,
-    "release_url_tpl": "https://github.com/klaus2918/tools/releases/download/{tag}/{filename}",
-    "raw_url_tpl": "https://raw.githubusercontent.com/klaus2918/tools/{branch}/{path}",
-    "jsdelivr_url_tpl": "https://cdn.jsdelivr.net/gh/klaus2918/tools@{branch}/{path}"
+    "private": false,
+    "release_url_tpl": "https://github.com/klaus2918/public-tools/releases/download/{tag}/{filename}",
+    "raw_url_tpl": "https://raw.githubusercontent.com/klaus2918/public-tools/{branch}/{path}",
+    "jsdelivr_url_tpl": "https://cdn.jsdelivr.net/gh/klaus2918/public-tools@{branch}/{path}"
   },
   "storage": {
     "light_asset_max_bytes": 20971520,
@@ -28,8 +28,8 @@
       { "id": "ghfast", "tpl": "https://ghfast.top/{url}", "enabled": false }
     ],
     "raw_prefixes": [
-      { "id": "jsdelivr", "tpl": "https://cdn.jsdelivr.net/gh/klaus2918/tools@{branch}/{path}", "enabled": true },
-      { "id": "raw", "tpl": "https://raw.githubusercontent.com/klaus2918/tools/{branch}/{path}", "enabled": true }
+      { "id": "jsdelivr", "tpl": "https://cdn.jsdelivr.net/gh/klaus2918/public-tools@{branch}/{path}", "enabled": true },
+      { "id": "raw", "tpl": "https://raw.githubusercontent.com/klaus2918/public-tools/{branch}/{path}", "enabled": true }
     ]
   },
   "naming": {

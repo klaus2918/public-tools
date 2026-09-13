@@ -797,6 +797,41 @@ async function cmdReplace(args) {
 }
 
 /**
+ * 按当前 config 的 URL 模板重算所有文件的 url 与 mirrors。
+ * 用途：仓库改名 / 迁移（如 tools → public-tools）后批量修正清单里的地址。
+ */
+async function cmdReurl(args) {
+  const cfg = loadConfig();
+  const list = args.id ? [findResource(args.id)].filter(Boolean) : loadResources();
+  if (!list.length) die('没有可处理的资源');
+  let n = 0;
+  for (const r of list) {
+    let changed = false;
+    for (const v of r.versions || []) {
+      for (const f of v.files || []) {
+        const before = `${f.url}|${(f.mirrors || []).join(',')}`;
+        if (v.storage === 'release') {
+          const tag = v.release_tag || fill(cfg.storage.release_tag_tpl, { id: r.id, version: v.version });
+          f.url = fill(cfg.repo.release_url_tpl, { tag, filename: f.filename, id: r.id, version: v.version });
+          f.mirrors = (cfg.mirrors.release_prefixes || [])
+            .filter((p) => p.enabled && p.tpl.includes('{url}'))
+            .map((p) => fill(p.tpl, { url: f.url, filename: f.filename }));
+        } else if (f.path) {
+          f.url = fill(cfg.repo.raw_url_tpl, { branch: cfg.repo.branch, path: f.path });
+          f.mirrors = (cfg.mirrors.raw_prefixes || [])
+            .filter((p) => p.enabled && p.tpl.includes('{path}'))
+            .map((p) => fill(p.tpl, { branch: cfg.repo.branch, path: f.path }));
+        }
+        if (`${f.url}|${(f.mirrors || []).join(',')}` !== before) { changed = true; n++; }
+      }
+    }
+    if (changed) saveResource(r);
+  }
+  if (n) buildIndex(cfg);
+  ok(`已重算 ${n} 个文件的 URL${n ? '，清单与索引已更新' : ''}`);
+}
+
+/**
  * 从 GitHub API 回填 Release 资产的 asset_id（私有仓库必须用 API 端点下载，需要 asset id）。
  * 适用于：早期版本发布时未记录 asset_id、或清单由外部生成。
  */
@@ -833,7 +868,7 @@ async function cmdMirror(args) {
     ]);
     return;
   }
-  const probe = 'https://github.com/klaus2918/tools/releases/latest';
+  const probe = `https://github.com/${cfg.repo.owner}/${cfg.repo.name}/releases/latest`;
   const seen = new Set();
   const cands = [];
   const pushCand = (id, tpl, enabled = true) => {
@@ -877,7 +912,8 @@ const USAGE = `工具资源仓库 CLI
   doctor                            清单结构体检
   verify [--id X|--all] [--url]     一致性/可达性校验
   mirror [--test]                   镜像查看与测速
-  fix-assets [--id X]               从 GitHub API 回填 Release 资产的 asset_id`;
+  fix-assets [--id X]               从 GitHub API 回填 Release 资产的 asset_id
+  reurl [--id X]                    按配置模板重算所有 url / mirrors（仓库改名后使用）`;
 
 async function main() {
   const argv = process.argv.slice(2);
@@ -896,6 +932,7 @@ async function main() {
     case 'set': return cmdSet(args);
     case 'replace': return cmdReplace(args);
     case 'fix-assets': return cmdFixAssets(args);
+    case 'reurl': return cmdReurl(args);
     case 'mirror': return cmdMirror(args);
     default: plain(USAGE); die(`未知命令：${cmd}`, 1);
   }

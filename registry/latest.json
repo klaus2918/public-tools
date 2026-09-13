@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-13T22:19:58+08:00",
-  "repo": "klaus2918/tools",
+  "generated_at": "2026-09-13T22:31:18+08:00",
+  "repo": "klaus2918/public-tools",
   "resources": {
     "wenzflow": {
       "id": "wenzflow",
@@ -19,10 +19,10 @@
           "arch": "x64",
           "size": 57994087,
           "sha256": "b7a9aae16a3729d7497325584499e269bb6ebd6ae3b17e65a24554178170203b",
-          "url": "https://github.com/klaus2918/tools/releases/download/wenzflow-v1.0.10/wenzflow-1.0.10-windows-x64-setup.exe",
+          "url": "https://github.com/klaus2918/public-tools/releases/download/wenzflow-v1.0.10/wenzflow-1.0.10-windows-x64-setup.exe",
           "mirrors": [
-            "https://github.com/klaus2918/tools/releases/download/wenzflow-v1.0.10/wenzflow-1.0.10-windows-x64-setup.exe",
-            "https://gh-proxy.com/https://github.com/klaus2918/tools/releases/download/wenzflow-v1.0.10/wenzflow-1.0.10-windows-x64-setup.exe"
+            "https://github.com/klaus2918/public-tools/releases/download/wenzflow-v1.0.10/wenzflow-1.0.10-windows-x64-setup.exe",
+            "https://gh-proxy.com/https://github.com/klaus2918/public-tools/releases/download/wenzflow-v1.0.10/wenzflow-1.0.10-windows-x64-setup.exe"
           ],
           "path": null,
           "storage": "release"
