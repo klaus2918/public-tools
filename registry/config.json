@@ -1,0 +1,53 @@
+{
+  "$comment": "工具资源仓库配置（唯一可手工编辑的配置源）。改完运行：node scripts/res.mjs doctor",
+  "network": {
+    "curl_args": ["--ssl-no-revoke"],
+    "$comment": "curl 附加参数。Windows schannel 在国内网络下吊销检查不可达（CRYPT_E_NO_REVOCATION_CHECK）会导致 TLS 握手失败，故加 --ssl-no-revoke；Linux/macOS 可置为空数组"
+  },
+  "repo": {
+    "owner": "klaus2918",
+    "name": "tools",
+    "branch": "main",
+    "release_url_tpl": "https://github.com/klaus2918/tools/releases/download/{tag}/{filename}",
+    "raw_url_tpl": "https://raw.githubusercontent.com/klaus2918/tools/{branch}/{path}",
+    "jsdelivr_url_tpl": "https://cdn.jsdelivr.net/gh/klaus2918/tools@{branch}/{path}"
+  },
+  "storage": {
+    "light_asset_max_bytes": 20971520,
+    "keep_releases": 3,
+    "assets_dir": "assets",
+    "release_tag_tpl": "{id}-v{version}"
+  },
+  "mirrors": {
+    "policy": "direct-first",
+    "timeout_seconds": 5,
+    "release_prefixes": [
+      { "id": "direct", "tpl": "{url}", "enabled": true },
+      { "id": "gh-proxy", "tpl": "https://gh-proxy.com/{url}", "enabled": true },
+      { "id": "ghfast", "tpl": "https://ghfast.top/{url}", "enabled": false }
+    ],
+    "raw_prefixes": [
+      { "id": "jsdelivr", "tpl": "https://cdn.jsdelivr.net/gh/klaus2918/tools@{branch}/{path}", "enabled": true },
+      { "id": "raw", "tpl": "https://raw.githubusercontent.com/klaus2918/tools/{branch}/{path}", "enabled": true }
+    ]
+  },
+  "naming": {
+    "platforms": ["windows", "linux", "macos", "android", "any"],
+    "archs": ["x64", "arm64", "x86", "any"],
+    "variants": ["setup", "portable", "min", "full", "unsigned", "debug", "signed", "noinstall"],
+    "ext_platform_map": {
+      ".exe": "windows",
+      ".msi": "windows",
+      ".msix": "windows",
+      ".dll": "windows",
+      ".apk": "android",
+      ".dmg": "macos",
+      ".pkg": "macos"
+    }
+  },
+  "scan": {
+    "roots": ["inbox", "."],
+    "ignore_dirs": [".git", ".op", "op", "registry", "scripts", "docs", "assets", "profiles", "inbox/.cache"],
+    "ignore_globs": ["*.tmp", "*.part", "registry/*", "scripts/*", "docs/*", "README.md", ".gitignore"]
+  }
+}

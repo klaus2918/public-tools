@@ -1,0 +1,31 @@
+{
+  "$comment": "清单字段规范与枚举（校验依据）。res doctor / res publish 按此校验。",
+  "version": 1,
+  "categories": [
+    "installer",
+    "portable",
+    "cli",
+    "lib",
+    "toolchain",
+    "plugin",
+    "asset",
+    "template",
+    "dataset",
+    "config",
+    "doc",
+    "other"
+  ],
+  "kinds": ["installer", "portable", "archive", "binary", "asset"],
+  "channels": ["stable", "beta", "dev"],
+  "statuses": ["active", "deprecated", "yanked"],
+  "storages": ["git", "release", "release-pruned", "external"],
+  "id_pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+  "filename_pattern": "^{slug}-{version}-{platform}-{arch}(-{variant})?\\.[a-z0-9]+$",
+  "resource_required": ["id", "name", "category", "status", "versions"],
+  "version_required": ["version", "channel", "released_at", "latest", "storage", "files"],
+  "file_required": ["filename", "kind", "platform", "arch", "size", "sha256", "url"],
+  "warnings": {
+    "other_category": "category=other 属临时分类，请尽快归入正式枚举",
+    "oversize_in_git": "storage=git 但 size 超过 light_asset_max_bytes 阈值"
+  }
+}
