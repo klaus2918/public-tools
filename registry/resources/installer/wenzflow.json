@@ -32,7 +32,8 @@
           "mirrors": [
             "https://github.com/klaus2918/tools/releases/download/wenzflow-v1.0.10/wenzflow-1.0.10-windows-x64-setup.exe",
             "https://gh-proxy.com/https://github.com/klaus2918/tools/releases/download/wenzflow-v1.0.10/wenzflow-1.0.10-windows-x64-setup.exe"
-          ]
+          ],
+          "asset_id": 561328960
         }
       ],
       "release_tag": "wenzflow-v1.0.10"

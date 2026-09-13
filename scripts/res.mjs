@@ -258,9 +258,29 @@ function buildIndex(cfg) {
 // ─────────────────────────── 下载引擎 ───────────────────────────
 function cacheDir() { return path.join(os.homedir(), '.tools-res', 'cache'); }
 function cachedFile(sha) { return path.join(cacheDir(), sha.slice(0, 2), sha); }
+function repoPrivate(cfg) { return !!(cfg && cfg.repo && cfg.repo.private); }
+function authToken() {
+  if (_authTokenResolved) return _authToken;
+  _authTokenResolved = true;
+  _authToken = githubToken();
+  return _authToken;
+}
+let _authToken = null;
+let _authTokenResolved = false;
 function downloadCandidates(file, version, cfg) {
-  const list = [];
-  const push = (u) => { if (u && !list.includes(u)) list.push(u); };
+  const out = [];
+  const push = (url, headers = {}) => { if (url && !out.some((c) => c.url === url)) out.push({ url, headers }); };
+  // 私有仓库：镜像前缀（jsDelivr / gh-proxy）与 releases/download 链接都不可用（实测 404），
+  // 必须走 GitHub API 端点 + Authorization：
+  //   Release 资产 → GET /repos/{o}/{r}/releases/assets/{id}（Accept: application/octet-stream）
+  //   Git 轻资产   → GET /repos/{o}/{r}/contents/{path}?ref={branch}（Accept: application/vnd.github.raw）
+  if (repoPrivate(cfg)) {
+    const base = `https://api.github.com/repos/${cfg.repo.owner}/${cfg.repo.name}`;
+    if (version.storage === 'git' && file.path) push(`${base}/contents/${file.path}?ref=${cfg.repo.branch}`, { Accept: 'application/vnd.github.raw' });
+    if (file.asset_id) push(`${base}/releases/assets/${file.asset_id}`, { Accept: 'application/octet-stream' });
+    if (!out.length) push(file.url);
+    return out;
+  }
   if (version.storage === 'git' && file.path) {
     const rawOnly = (cfg.mirrors.raw_prefixes || []).filter((p) => p.enabled && p.tpl.includes('{path}'));
     const direct = (cfg.mirrors.raw_prefixes || []).filter((p) => p.enabled && p.tpl.includes('{path}') === false);
@@ -272,10 +292,14 @@ function downloadCandidates(file, version, cfg) {
     if (cfg.mirrors.policy === 'mirror-first') { for (const p of prefixes) push(fill(p.tpl, { url: file.url, filename: file.filename })); push(file.url); }
     else { push(file.url); for (const p of prefixes) push(fill(p.tpl, { url: file.url, filename: file.filename })); }
   }
-  return list;
+  return out;
 }
-function curlDownload(url, dest, timeout) {
-  const args = ['-fSL', '--retry', '1', '--connect-timeout', String(timeout), '--max-time', '1800', ...extraCurlArgs(), '-o', dest, url];
+function curlDownload(url, dest, timeout, token = null, headers = {}) {
+  // 下载用较宽裕的连接超时（api.github.com 在国内偶发慢连接），并静默进度条，结果由 CLI 统一打印
+  const args = ['-fsSL', '--retry', '3', '--retry-delay', '1', '--connect-timeout', String(Math.max(Number(timeout) || 5, 30)), '--max-time', '1800', ...extraCurlArgs()];
+  if (token) args.push('-H', `Authorization: token ${token}`, '--location-trusted');
+  for (const [k, v] of Object.entries(headers || {})) args.push('-H', `${k}: ${v}`);
+  args.push('-o', dest, url);
   if (fs.existsSync(dest)) { args.splice(0, 0, '-C', '-'); }
   const r = spawnSync(CURL, args, { stdio: ['ignore', 'ignore', 'pipe'] });
   if (r.status !== 0) throw new Error((r.stderr ? r.stderr.toString() : '').trim() || `curl 退出码 ${r.status}`);
@@ -289,11 +313,13 @@ async function fetchDownload(url, dest) {
 }
 async function downloadTo(file, version, destPath, cfg, opts = {}) {
   const cands = downloadCandidates(file, version, cfg);
+  const token = repoPrivate(cfg) ? authToken() : null;
   const errors = [];
-  for (const url of cands) {
+  for (const cand of cands) {
+    const url = cand.url;
     try {
       fs.mkdirSync(path.dirname(destPath), { recursive: true });
-      if (CURL) curlDownload(url, destPath, cfg.mirrors.timeout_seconds ?? 5);
+      if (CURL) curlDownload(url, destPath, cfg.mirrors.timeout_seconds ?? 5, token, cand.headers);
       else await fetchDownload(url, destPath);
       const sha = await sha256File(destPath);
       if (file.sha256 && sha !== file.sha256) { errors.push(`${url} → 哈希不匹配`); fs.rmSync(destPath, { force: true }); continue; }
@@ -303,7 +329,10 @@ async function downloadTo(file, version, destPath, cfg, opts = {}) {
       if (fs.existsSync(destPath) && !opts.keepPartial) fs.rmSync(destPath, { force: true });
     }
   }
-  throw new Error(`全部下载源失败：\n  ${errors.join('\n  ')}`);
+  const hint = repoPrivate(cfg) && !token
+    ? '\n  提示：仓库为私有，需要 GitHub 凭据 —— 设置环境变量 GITHUB_TOKEN，或先执行一次 git 操作让凭据管理器保存 github.com 凭据'
+    : '';
+  throw new Error(`全部下载源失败：\n  ${errors.join('\n  ')}${hint}`);
 }
 
 // ─────────────────────────── GitHub Release 上传 ───────────────────────────
@@ -319,10 +348,14 @@ function githubToken() {
 // 注意：本机 Node fetch 无法通过 GitHub 的 TLS 链校验（UNABLE_TO_VERIFY_LEAF_SIGNATURE，
 // 实测 github.com / api.github.com / raw / objects 全部失败），而 curl.exe 走系统证书库可用。
 // 因此所有网络请求统一走 curl。
-function curlHead(url, timeout = 15) {
+function curlHead(url, timeout = 15, token = null, headers = {}) {
   if (!CURL) return { status: 0, error: '未找到 curl' };
   const nul = IS_WIN ? 'NUL' : '/dev/null';
-  const r = spawnSync(CURL, ['-sS', '-I', '-L', '--max-time', String(timeout), ...extraCurlArgs(), '-o', nul, '-w', '%{http_code}', url], { encoding: 'utf8' });
+  const args = ['-sS', '-I', '-L', '--max-time', String(timeout), ...extraCurlArgs(), '-o', nul, '-w', '%{http_code}'];
+  if (token) args.push('-H', `Authorization: token ${token}`, '--location-trusted');
+  for (const [k, v] of Object.entries(headers || {})) args.push('-H', `${k}: ${v}`);
+  args.push(url);
+  const r = spawnSync(CURL, args, { encoding: 'utf8' });
   if (r.error) return { status: 0, error: r.error.message };
   const status = Number((r.stdout || '').trim()) || 0;
   return { status, error: status ? null : String(r.stderr || '').trim().slice(0, 120) };
@@ -533,8 +566,9 @@ async function cmdPublish(args) {
     if (args['no-upload']) warn('--no-upload：已登记清单但未上传资产，URL 暂不可用');
     else {
       const release = await ensureRelease(cfg, tag, `${r.name} ${version}`, `${id} ${version}（由 res.mjs 发布）`);
-      await uploadAsset(cfg, release, abs, filename);
-      ok(`Release 资产已上传：${tag}/${filename}（${human(size)}）`);
+      const uploaded = await uploadAsset(cfg, release, abs, filename);
+      if (uploaded && uploaded.id) file.asset_id = uploaded.id;
+      ok(`Release 资产已上传：${tag}/${filename}（${human(size)}）${file.asset_id ? ` asset_id=${file.asset_id}` : ''}`);
     }
   }
   if (dup) v.files = v.files.filter((f) => f.filename !== filename);
@@ -696,10 +730,11 @@ async function cmdVerify(args) {
           }
         }
         if (args.url || args.all) {
-          if (!f.url) issues.push('缺少 url');
+          const cand = downloadCandidates(f, v, cfg)[0];
+          if (!cand) issues.push('缺少可用的下载地址');
           else {
-            const h = curlHead(f.url, 20);
-            if (!h.status || h.status >= 400) issues.push(`URL ${h.status || 'ERR'}：${f.url}${h.error ? `（${h.error.slice(0, 60)}）` : ''}`);
+            const h = curlHead(cand.url, 20, repoPrivate(cfg) ? authToken() : null, cand.headers);
+            if (!h.status || h.status >= 400) issues.push(`URL ${h.status || 'ERR'}：${cand.url}${h.error ? `（${h.error.slice(0, 60)}）` : ''}`);
           }
         }
         if (issues.length) { bad_++; for (const i of issues) bad(`${r.id}@${v.version}/${f.filename}：${i}`); }
@@ -761,6 +796,32 @@ async function cmdReplace(args) {
   ok(`已替换并留痕（rev ${v.rev}）：${id}@${version}/${f.filename}`);
 }
 
+/**
+ * 从 GitHub API 回填 Release 资产的 asset_id（私有仓库必须用 API 端点下载，需要 asset id）。
+ * 适用于：早期版本发布时未记录 asset_id、或清单由外部生成。
+ */
+async function cmdFixAssets(args) {
+  const cfg = loadConfig();
+  const list = args.id ? [findResource(args.id)].filter(Boolean) : loadResources();
+  if (!list.length) die('没有可处理的资源');
+  let n = 0;
+  const touched = new Set();
+  for (const r of list) {
+    for (const v of r.versions || []) {
+      if (v.storage !== 'release' || !v.release_tag) continue;
+      const got = await gh(`/repos/${cfg.repo.owner}/${cfg.repo.name}/releases/tags/${encodeURIComponent(v.release_tag)}`);
+      if (!got.ok || !got.data || !Array.isArray(got.data.assets)) { warn(`${r.id}@${v.version}：读取 Release 失败（${v.release_tag}）`); continue; }
+      for (const f of v.files || []) {
+        const a = got.data.assets.find((x) => x.name === f.filename);
+        if (a && f.asset_id !== a.id) { f.asset_id = a.id; n++; touched.add(r.id); }
+      }
+    }
+  }
+  for (const r of list) if (touched.has(r.id)) saveResource(r);
+  if (n) buildIndex(cfg);
+  ok(`已回填 ${n} 个 asset_id${n ? '，清单与索引已更新' : ''}`);
+}
+
 async function cmdMirror(args) {
   const cfg = loadConfig();
   if (!args.test) {
@@ -815,7 +876,8 @@ const USAGE = `工具资源仓库 CLI
   index                             重建派生索引
   doctor                            清单结构体检
   verify [--id X|--all] [--url]     一致性/可达性校验
-  mirror [--test]                   镜像查看与测速`;
+  mirror [--test]                   镜像查看与测速
+  fix-assets [--id X]               从 GitHub API 回填 Release 资产的 asset_id`;
 
 async function main() {
   const argv = process.argv.slice(2);
@@ -833,6 +895,7 @@ async function main() {
     case 'verify': return cmdVerify(args);
     case 'set': return cmdSet(args);
     case 'replace': return cmdReplace(args);
+    case 'fix-assets': return cmdFixAssets(args);
     case 'mirror': return cmdMirror(args);
     default: plain(USAGE); die(`未知命令：${cmd}`, 1);
   }

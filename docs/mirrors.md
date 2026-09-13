@@ -63,6 +63,30 @@ node scripts/res.mjs mirror --test     # 实测各 release 镜像耗时并排序
 
 测速结果仅供参考（受网络波动影响），按结果调整 `enabled` 开关即可，无需改代码。
 
+## 私有仓库（当前启用）
+
+`registry/config.json → repo.private: true` 时，镜像链路整体失效（第三方前缀无法携带认证），CLI 自动改走 GitHub API 端点：
+
+| 资源 | 端点 | 请求头 |
+|------|------|--------|
+| Release 资产 | `api.github.com/repos/{o}/{r}/releases/assets/{asset_id}` | `Accept: application/octet-stream` + `Authorization: token …` |
+| Git 轻资产 | `api.github.com/repos/{o}/{r}/contents/{path}?ref={branch}` | `Accept: application/vnd.github.raw` + `Authorization: token …` |
+
+实测结论（2026-09-13）：
+
+- `github.com/{o}/{r}/releases/download/{tag}/{file}` 对私有仓库返回 **404**，匿名、带 token、HEAD、Range 全部 404
+- API 资产端点带 token 返回 **206**，可断点续传
+- jsDelivr 不索引私有仓库；gh-proxy 无法代理需认证的请求
+
+代价与应对：
+
+| 代价 | 应对 |
+|------|------|
+| 无 CDN 加速，速度取决于直连 GitHub（本机实测下完 55 MB 可用） | 本地内容寻址缓存（同 sha256 二次取用零网络）；必要时自建 Cloudflare Worker 反代并填进 `mirrors` |
+| api.github.com 偶发慢连接 | 下载连接超时放宽到 ≥30s，`--retry 3` |
+| 每个 Release 文件需要 `asset_id` | 发布时自动写入；历史数据 `res fix-assets` 回填 |
+| 只能被有仓库权限的人下载 | 这是"私有"的语义；若要匿名分享，需改公开或另建公开通道 |
+
 ## 本地缓存
 
 - 位置：`%USERPROFILE%\.tools-res\cache\<sha256[0:2]>\<sha256>`（内容寻址）

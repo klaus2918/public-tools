@@ -114,6 +114,21 @@ node scripts/res.mjs set wenzflow --status deprecated      # 元信息维护
 node scripts/res.mjs mirror --test      # 实测各镜像耗时并排序
 ```
 
+### 私有仓库模式（当前启用）
+
+`config.json → repo.private: true` 时，下载链路自动切换为 GitHub API 端点——实测 `releases/download/...` 链接对私有仓库**即使带 token 也返回 404**：
+
+| 资源 | 取用端点 | 请求头 |
+|------|----------|--------|
+| Release 资产 | `GET /repos/{o}/{r}/releases/assets/{asset_id}` | `Accept: application/octet-stream` + `Authorization` |
+| Git 轻资产 | `GET /repos/{o}/{r}/contents/{path}?ref={branch}` | `Accept: application/vnd.github.raw` + `Authorization` |
+
+- 凭据来源：环境变量 `GITHUB_TOKEN` → 否则从 git 凭据管理器读取（`git credential fill`），**不落盘、不入库**
+- 每个 Release 文件在清单记录 `asset_id`（发布时自动写入；历史数据用 `res fix-assets` 回填）
+- 私有模式自动跳过所有镜像（jsDelivr / gh-proxy 无法携带认证）→ **没有第三方加速**，速度取决于直连 GitHub；本地内容寻址缓存仍然生效
+- 取用体验与公开仓库一致：`node scripts/res.mjs get wenzflow` 一条命令即可，凭据对使用者透明
+- 想让**别人**也能免凭据下载，只能改成公开仓库，或另建公开通道（对象存储 / Cloudflare Worker 反代）
+
 ---
 
 ## 命令参考

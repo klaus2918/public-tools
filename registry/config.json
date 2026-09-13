@@ -8,6 +8,7 @@
     "owner": "klaus2918",
     "name": "tools",
     "branch": "main",
+    "private": true,
     "release_url_tpl": "https://github.com/klaus2918/tools/releases/download/{tag}/{filename}",
     "raw_url_tpl": "https://raw.githubusercontent.com/klaus2918/tools/{branch}/{path}",
     "jsdelivr_url_tpl": "https://cdn.jsdelivr.net/gh/klaus2918/tools@{branch}/{path}"
