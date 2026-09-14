@@ -13,6 +13,7 @@
  *   index                             重建 index.json / latest.json / CATALOG.md
  *   doctor                            清单结构体检
  *   verify [--id X|--all]             实物与清单一致性、URL 可达性
+ *   prune [--id X] [--keep N] [--apply]  按 keep_releases 保留最近 N 版，淘汰更老的 Release 资产
  *   mirror [--test]                   镜像策略查看/测速
  */
 import fs from 'node:fs';
@@ -582,6 +583,12 @@ async function cmdPublish(args) {
   plain(`下一步：`);
   plain(`  git add registry assets && git commit -m "publish(${id}): ${version} ${filename}"`);
   plain(`  git push`);
+  const keepN = cfg.storage.keep_releases ?? 3;
+  const liveN = liveVersions(r).length;
+  if (liveN > keepN) {
+    plain('');
+    warn(`在保版本数 ${liveN} 超过 keep_releases=${keepN}：可运行 node scripts/res.mjs prune --id ${id} --apply 淘汰更旧的 Release 资产`);
+  }
 }
 
 async function cmdList(args) {
@@ -619,6 +626,7 @@ async function cmdGet(args) {
   const want = !args.version || args.version === 'latest' ? (lv ? lv.version : null) : String(args.version);
   const v = (r.versions || []).find((x) => x.version === want);
   if (!v) die(`未找到版本 ${want}（可用：${(r.versions || []).map((x) => x.version).join(', ')}）`);
+  if (v.storage === 'release-pruned') die(`${id}@${want}：资产已按保留策略删除（keep_releases=${cfg.storage.keep_releases ?? 3}），清单仅留历史记录；可用版本：${liveVersions(r).map((x) => x.version).join(', ')}`);
   let files = (v.files || []).slice();
   if (args.platform) files = files.filter((f) => f.platform === args.platform);
   if (args.arch) files = files.filter((f) => f.arch === args.arch);
@@ -687,6 +695,9 @@ function cmdDoctor() {
         }
       }
     }
+    const keepN = cfg.storage.keep_releases;
+    const liveN = liveVersions(r).length;
+    if (keepN && liveN > keepN) warnings.push(`${tag}：在保版本数 ${liveN} 超过 keep_releases=${keepN}（可运行 res prune 淘汰更旧版本）`);
   }
   // assets 孤儿文件
   const assetsRoot = path.join(ROOT, cfg.storage.assets_dir);
@@ -896,6 +907,94 @@ async function cmdMirror(args) {
   table(['镜像', '耗时', '地址'], rows.map((r) => [r.id, r.label, r.url]));
 }
 
+// ─────────────────────────── 版本保留（keep_releases） ───────────────────────────
+/**
+ * 版本新旧的排序依据：released_at（日期）优先 → 最新文件的 added_at（时间）→ 版本号（逐段数值比较）。
+ * 之所以不只看版本号：分批补发的历史版本可能版本号更大但发布更早。
+ */
+function versionTimeKey(v) {
+  const f = (v.files || [])[0] || {};
+  return {
+    rel: Date.parse(String(v.released_at || '').slice(0, 10)) || 0,
+    add: Date.parse(String(f.added_at || '')) || 0,
+  };
+}
+function semverCompare(a, b) {
+  const seg = (x) => String(x).split(/[.+-]/).map((s) => { const n = parseInt(s, 10); return Number.isFinite(n) ? n : 0; });
+  const pa = seg(a), pb = seg(b);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] ?? 0, y = pb[i] ?? 0;
+    if (x !== y) return x - y;
+  }
+  return 0;
+}
+function compareVersionDesc(a, b) {
+  const ka = versionTimeKey(a), kb = versionTimeKey(b);
+  if (ka.rel !== kb.rel) return kb.rel - ka.rel;
+  if (ka.add !== kb.add) return kb.add - ka.add;
+  return semverCompare(b.version, a.version);
+}
+/** 在保版本：已标记 release-pruned 的版本不占保留额度，也不重复淘汰 */
+function liveVersions(r) { return (r.versions || []).filter((v) => v.storage !== 'release-pruned'); }
+/** 待淘汰版本（最老的在前）：按 recency 排序后，超出 keep 的在保版本 */
+function versionsToPrune(r, keep) {
+  return liveVersions(r).slice().sort(compareVersionDesc).slice(keep).reverse();
+}
+/** 删除某个 tag 的 Release（连带其资产）；远端不存在视为已达成目标 */
+async function deleteReleaseByTag(cfg, tag) {
+  const base = `/repos/${cfg.repo.owner}/${cfg.repo.name}`;
+  const got = await gh(`${base}/releases/tags/${encodeURIComponent(tag)}`);
+  if (!got.ok || !got.data || !got.data.id) return { status: 'missing' };
+  const del = await gh(`${base}/releases/${got.data.id}`, { method: 'DELETE' });
+  if (!del.ok) return { status: `HTTP ${del.status}` };
+  return { status: 'deleted' };
+}
+/**
+ * 按 keep_releases 保留最近 N 个版本，淘汰更老的 Release 资产。
+ * 默认 dry-run，只列待淘汰清单；加 --apply 才真正删除远端资产。
+ * 淘汰后清单条目保留（storage=release-pruned、URL 留档），便于追溯历史版本。
+ */
+async function cmdPrune(args) {
+  const cfg = loadConfig();
+  const keep = Number(args.keep ?? cfg.storage.keep_releases ?? 3);
+  if (!Number.isInteger(keep) || keep < 1) die('--keep 需为 ≥1 的整数');
+  const list = args.id ? [findResource(args.id)].filter(Boolean) : loadResources();
+  if (!list.length) die(`没有可处理的资源${args.id ? `：${args.id}` : ''}`);
+  const apply = !!args.apply;
+  const rows = [];
+  let pruned = 0;
+  let pending = 0;
+  for (const r of list) {
+    for (const v of versionsToPrune(r, keep)) {
+      if (v.storage !== 'release') {
+        rows.push([r.id, v.version, v.storage ?? '-', '跳过（本命令只淘汰 Release 承载的资产）']);
+        continue;
+      }
+      const tag = v.release_tag || fill(cfg.storage.release_tag_tpl, { id: r.id, version: v.version });
+      if (!apply) { pending++; rows.push([r.id, v.version, tag, '待删除（dry-run）']); continue; }
+      const res = await deleteReleaseByTag(cfg, tag);
+      if (res.status !== 'deleted' && res.status !== 'missing') { rows.push([r.id, v.version, tag, `删除失败（${res.status}）`]); continue; }
+      v.storage = 'release-pruned';
+      v.pruned_at = nowISO();
+      for (const f of v.files || []) { delete f.asset_id; delete f.mirrors; }
+      saveResource(r);
+      pruned++;
+      rows.push([r.id, v.version, tag, res.status === 'deleted' ? '已删除并标记 release-pruned' : '远端已不存在，仅标记 release-pruned']);
+    }
+  }
+  if (!rows.length) { ok(`无需淘汰：各资源在保版本数均不超过 keep=${keep}`); return; }
+  table(['资源', '版本', 'Release tag', '处理'], rows);
+  if (!apply) {
+    plain('');
+    warn(`dry-run：以上将被删除的 Release 资产共 ${pending} 项（清单条目保留并标记 release-pruned）；确认后加 --apply 执行`);
+    return;
+  }
+  plain('');
+  warn(`已淘汰 ${pruned} 个版本（keep=${keep}）；被淘汰版本的清单条目保留为 release-pruned，URL 仅作历史查询`);
+  if (pruned) buildIndex(cfg);
+  ok('prune 完成');
+}
+
 // ─────────────────────────── 入口 ───────────────────────────
 const USAGE = `工具资源仓库 CLI
 
@@ -911,6 +1010,7 @@ const USAGE = `工具资源仓库 CLI
   index                             重建派生索引
   doctor                            清单结构体检
   verify [--id X|--all] [--url]     一致性/可达性校验
+  prune [--id X] [--keep N] [--apply]  淘汰超出 keep_releases 的旧 Release 资产
   mirror [--test]                   镜像查看与测速
   fix-assets [--id X]               从 GitHub API 回填 Release 资产的 asset_id
   reurl [--id X]                    按配置模板重算所有 url / mirrors（仓库改名后使用）`;
@@ -929,6 +1029,7 @@ async function main() {
     case 'index': return cmdIndex();
     case 'doctor': return cmdDoctor();
     case 'verify': return cmdVerify(args);
+    case 'prune': return cmdPrune(args);
     case 'set': return cmdSet(args);
     case 'replace': return cmdReplace(args);
     case 'fix-assets': return cmdFixAssets(args);

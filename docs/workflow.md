@@ -32,6 +32,7 @@ node scripts/res.mjs publish inbox\wenzflow-1.0.8-windows-x64-setup.exe `
 | 同版本内容修正 | `res replace wenzflow 1.0.8 inbox\fixed.exe`（rev+1，记 CHANGELOG） |
 | 改元信息 | `res set wenzflow --status deprecated --notes "改用 2.x"` |
 | 弃用 / 停用 | `--status deprecated`（可取用但提示）／`--status yanked`（默认拒取，需 `--allow-yanked`） |
+| 版本保留（淘汰旧版） | `res prune --id wenzflow`（dry-run 预览）→ `res prune --id wenzflow --apply`（按 `keep_releases` 保留最近 N 版，更老的 Release 资产删除，清单条目保留为 `release-pruned`，URL 留档；`res get` 取被淘汰版本会明确拒绝） |
 
 **幂等保护**：同 `id + version + filename` 已存在时 `publish` 默认拒绝，需显式 `--force`。
 

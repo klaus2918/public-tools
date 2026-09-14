@@ -58,6 +58,8 @@ node scripts/res.mjs publish inbox\WenzFlow-1.0.8-windows-x64-setup.exe `
 node scripts/res.mjs publish <新版文件> --id wenzflow     # 新版本，latest 自动切换
 node scripts/res.mjs replace wenzflow 1.0.8 <修正文件>     # 同版本原地修正（rev+1）
 node scripts/res.mjs set wenzflow --status deprecated      # 元信息维护
+node scripts/res.mjs prune --id wenzflow                   # 版本保留：预览待淘汰的旧 Release
+node scripts/res.mjs prune --id wenzflow --apply           # 确认后删除（清单条目留档）
 ```
 
 ---
@@ -102,7 +104,7 @@ node scripts/res.mjs set wenzflow --status deprecated      # 元信息维护
 | 键 | 说明 |
 |----|------|
 | `storage.light_asset_max_bytes` | 入 Git 的体积阈值（默认 20 MB） |
-| `storage.keep_releases` | 每资源保留的 Release 版本数（默认 3） |
+| `storage.keep_releases` | 每资源保留的 Release 版本数（默认 3），由 `res prune` 执行：超出的旧资产删除，清单条目保留并标记 `release-pruned`（URL 留档可查） |
 | `mirrors.policy` | `direct-first`（默认，直连优先失败回退）或 `mirror-first` |
 | `mirrors.release_prefixes` / `raw_prefixes` | 加速前缀模板，可增删/置 `enabled:false` |
 
@@ -146,6 +148,7 @@ CLI 按 `config.json → repo.private` 自动切换，两种模式无需重新�
 | `index` | 重建 index.json / latest.json / CATALOG.md |
 | `doctor` | 清单结构体检 |
 | `verify [--id X] [--all]` | 实物与清单一致性、URL 可达性 |
+| `prune [--id X] [--keep N] [--apply]` | 版本保留：淘汰超出 `keep_releases` 的旧 Release 资产（默认 dry-run，清单条目留档为 `release-pruned`） |
 | `mirror` | 镜像测速与策略切换 |
 
 > 发布到 Releases 需要 GitHub Token：优先读环境变量 `GITHUB_TOKEN`，否则尝试从 git 凭据管理器（`git credential fill`）获取。Token 不落盘、不入库。
