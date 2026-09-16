@@ -42,7 +42,7 @@
       "version": "1.0.11",
       "channel": "stable",
       "released_at": "2026-09-14",
-      "latest": true,
+      "latest": false,
       "storage": "release",
       "files": [
         {
@@ -63,6 +63,32 @@
         }
       ],
       "release_tag": "wenzflow-v1.0.11"
+    },
+    {
+      "version": "1.0.12",
+      "channel": "stable",
+      "released_at": "2026-09-16",
+      "latest": true,
+      "storage": "release",
+      "files": [
+        {
+          "filename": "wenzflow-1.0.12-windows-x64-setup.exe",
+          "orig_name": "WenzFlow-1.0.12.exe",
+          "kind": "installer",
+          "platform": "windows",
+          "arch": "x64",
+          "size": 58158816,
+          "sha256": "40e020c6d04c94269268abeb6415f55fe8b6894a90133cb5f4978ec5696df317",
+          "added_at": "2026-09-16T15:53:59+08:00",
+          "url": "https://github.com/klaus2918/public-tools/releases/download/wenzflow-v1.0.12/wenzflow-1.0.12-windows-x64-setup.exe",
+          "mirrors": [
+            "https://github.com/klaus2918/public-tools/releases/download/wenzflow-v1.0.12/wenzflow-1.0.12-windows-x64-setup.exe",
+            "https://gh-proxy.com/https://github.com/klaus2918/public-tools/releases/download/wenzflow-v1.0.12/wenzflow-1.0.12-windows-x64-setup.exe"
+          ],
+          "asset_id": 567473410
+        }
+      ],
+      "release_tag": "wenzflow-v1.0.12"
     }
   ]
 }
