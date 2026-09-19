@@ -2,7 +2,57 @@
 
 > 所有操作统一入口：`node scripts/res.mjs <命令>`（仓库根目录执行）
 
-## 一、发布新资源
+## 零、一键发布（推荐）
+
+```powershell
+# 最简用法：文件放 inbox/ 后直接执行（自动识别文件名参数）
+node scripts/res-publish.mjs inbox/WenzFlow-1.0.15.exe
+
+# 指定参数（文件名不规范时）
+node scripts/res-publish.mjs inbox/MyTool.exe --id mytool --version 1.0.0 --platform windows --arch x64
+
+# dry-run 预览（不执行任何操作）
+node scripts/res-publish.mjs inbox/WenzFlow-1.0.15.exe --dry-run
+
+# 只发布不推送
+node scripts/res-publish.mjs inbox/WenzFlow-1.0.15.exe --no-push
+
+# 跳过实测下载（加速）
+node scripts/res-publish.mjs inbox/WenzFlow-1.0.15.exe --no-verify-download
+```
+
+**一键发布自动完成**：
+1. 识别文件参数（从文件名解析或手动指定）
+2. 上传 Release + 写清单 + 重建索引
+3. 结构体检（doctor）+ 一致性校验（verify）
+4. 安全门禁（敏感信息扫描 + 文本校验）
+5. Git 提交（自动生成规范 commit message）
+6. 推送到远端
+7. 版本保留策略检查（超 `keep_releases` 自动 prune + 提交）
+
+**常用参数**：
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--id` | 资源 ID | 从文件名解析 |
+| `--version` | 版本号 | 从文件名解析 |
+| `--platform` | 平台 | windows |
+| `--arch` | 架构 | x64 |
+| `--variant` | 变体 | setup |
+| `--category` | 分类 | installer |
+| `--desc` | 描述 | 读取 `inbox/.desc.txt` |
+| `--no-push` | 只提交不推送 | false |
+| `--no-prune` | 不自动 prune | false |
+| `--no-verify-download` | 不实测下载 | false |
+| `--dry-run` | 只打印命令不执行 | false |
+
+**文件名规范**：`{slug}-{version}-{platform}-{arch}[-{variant}].{ext}`
+- 完整格式：`wenzflow-1.0.15-windows-x64-setup.exe`（自动识别所有参数）
+- 退化格式：`WenzFlow-1.0.15.exe`（识别 slug + version，其余用默认值）
+
+**幂等保护**：同 `id + version` 已存在时 `publish` 默认拒绝，需显式 `--force`。
+
+## 一、发布新资源（手动步骤）
 
 ```powershell
 # 1) 文件放 inbox\（或任意路径）
