@@ -194,13 +194,13 @@ function resolveFile(args) {
 function doPublish(info) {
   step(2, '发布资源（res publish）');
   const args = [
-    'publish', `"${info.abs}"`,
+    'publish', info.abs,
     '--id', info.id,
     '--category', info.category,
     '--version', info.version,
     '--platform', info.platform,
     '--arch', info.arch,
-    '--desc-file', 'inbox/.desc.txt',
+    '--desc-file', path.join('inbox', '.desc.txt'),
   ];
   if (info.variant) args.push('--variant', info.variant);
 
