@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T15:45:52+08:00",
+  "generated_at": "2026-09-20T15:46:21+08:00",
   "repo": "klaus2918/public-tools",
   "count": 1,
   "resources": [
@@ -41,7 +41,7 @@
           "channel": "stable",
           "released_at": "2026-09-14",
           "latest": false,
-          "storage": "release",
+          "storage": "release-pruned",
           "release_tag": "wenzflow-v1.0.11",
           "rev": 1,
           "files": [
@@ -52,7 +52,7 @@
               "arch": "x64",
               "size": 58068089,
               "sha256": "c6373c0d1661f937f1c7aa95c811189c641a907bd93db3ad21b53a0533f11d0f",
-              "storage": "release",
+              "storage": "release-pruned",
               "path": null,
               "url": "https://github.com/klaus2918/public-tools/releases/download/wenzflow-v1.0.11/wenzflow-1.0.11-windows-x64-setup.exe"
             }
@@ -63,7 +63,7 @@
           "channel": "stable",
           "released_at": "2026-09-16",
           "latest": false,
-          "storage": "release",
+          "storage": "release-pruned",
           "release_tag": "wenzflow-v1.0.12",
           "rev": 1,
           "files": [
@@ -74,7 +74,7 @@
               "arch": "x64",
               "size": 58158816,
               "sha256": "40e020c6d04c94269268abeb6415f55fe8b6894a90133cb5f4978ec5696df317",
-              "storage": "release",
+              "storage": "release-pruned",
               "path": null,
               "url": "https://github.com/klaus2918/public-tools/releases/download/wenzflow-v1.0.12/wenzflow-1.0.12-windows-x64-setup.exe"
             }
