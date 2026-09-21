@@ -1,7 +1,34 @@
 {
-  "generated_at": "2026-09-20T15:46:21+08:00",
+  "generated_at": "2026-09-21T19:49:01+08:00",
   "repo": "klaus2918/public-tools",
   "resources": {
+    "op-skills-pack": {
+      "id": "op-skills-pack",
+      "name": "op-skills-pack",
+      "category": "toolchain",
+      "subcategory": null,
+      "version": "1.0.2",
+      "channel": "stable",
+      "released_at": "2026-09-21",
+      "storage": "git",
+      "files": [
+        {
+          "filename": "op-skills-pack-1.0.2-any-any-setup.zip",
+          "kind": "archive",
+          "platform": "any",
+          "arch": "any",
+          "size": 1059101,
+          "sha256": "f38b1e4e1b4b5be8aa076a386e56a4d29bac3231214b46d3986e89b77c6fcfca",
+          "url": "https://raw.githubusercontent.com/klaus2918/public-tools/main/assets/toolchain/op-skills-pack/1.0.2/op-skills-pack-1.0.2-any-any-setup.zip",
+          "mirrors": [
+            "https://cdn.jsdelivr.net/gh/klaus2918/public-tools@main/assets/toolchain/op-skills-pack/1.0.2/op-skills-pack-1.0.2-any-any-setup.zip",
+            "https://raw.githubusercontent.com/klaus2918/public-tools/main/assets/toolchain/op-skills-pack/1.0.2/op-skills-pack-1.0.2-any-any-setup.zip"
+          ],
+          "path": "assets/toolchain/op-skills-pack/1.0.2/op-skills-pack-1.0.2-any-any-setup.zip",
+          "storage": "git"
+        }
+      ]
+    },
     "wenzflow": {
       "id": "wenzflow",
       "name": "wenzflow",
