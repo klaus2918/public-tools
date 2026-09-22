@@ -17,7 +17,7 @@
       "channel": "stable",
       "released_at": "2026-09-22",
       "latest": true,
-      "storage": "git",
+      "storage": "release",
       "files": [
         {
           "filename": "op-skills-pack-1.0.5-any-any.zip",
@@ -27,15 +27,16 @@
           "arch": "any",
           "size": 763675,
           "sha256": "d2d537b4bdd4f80ebe057b8d398112609f9372e92132a6750eded25502b59f65",
-          "added_at": "2026-09-22T09:22:17+08:00",
-          "path": "assets/toolchain/op-skills-pack/1.0.5/op-skills-pack-1.0.5-any-any.zip",
-          "url": "https://raw.githubusercontent.com/klaus2918/public-tools/main/assets/toolchain/op-skills-pack/1.0.5/op-skills-pack-1.0.5-any-any.zip",
+          "added_at": "2026-09-22T16:04:49+08:00",
+          "url": "https://github.com/klaus2918/public-tools/releases/download/op-skills-pack-v1.0.5/op-skills-pack-1.0.5-any-any.zip",
           "mirrors": [
-            "https://cdn.jsdelivr.net/gh/klaus2918/public-tools@main/assets/toolchain/op-skills-pack/1.0.5/op-skills-pack-1.0.5-any-any.zip",
-            "https://raw.githubusercontent.com/klaus2918/public-tools/main/assets/toolchain/op-skills-pack/1.0.5/op-skills-pack-1.0.5-any-any.zip"
-          ]
+            "https://github.com/klaus2918/public-tools/releases/download/op-skills-pack-v1.0.5/op-skills-pack-1.0.5-any-any.zip",
+            "https://gh-proxy.com/https://github.com/klaus2918/public-tools/releases/download/op-skills-pack-v1.0.5/op-skills-pack-1.0.5-any-any.zip"
+          ],
+          "asset_id": 580897144
         }
-      ]
+      ],
+      "release_tag": "op-skills-pack-v1.0.5"
     }
   ]
 }

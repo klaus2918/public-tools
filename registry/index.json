@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T09:22:17+08:00",
+  "generated_at": "2026-09-22T16:04:55+08:00",
   "repo": "klaus2918/public-tools",
   "count": 2,
   "resources": [
@@ -19,8 +19,8 @@
           "channel": "stable",
           "released_at": "2026-09-22",
           "latest": true,
-          "storage": "git",
-          "release_tag": null,
+          "storage": "release",
+          "release_tag": "op-skills-pack-v1.0.5",
           "rev": 1,
           "files": [
             {
@@ -30,9 +30,9 @@
               "arch": "any",
               "size": 763675,
               "sha256": "d2d537b4bdd4f80ebe057b8d398112609f9372e92132a6750eded25502b59f65",
-              "storage": "git",
-              "path": "assets/toolchain/op-skills-pack/1.0.5/op-skills-pack-1.0.5-any-any.zip",
-              "url": "https://raw.githubusercontent.com/klaus2918/public-tools/main/assets/toolchain/op-skills-pack/1.0.5/op-skills-pack-1.0.5-any-any.zip"
+              "storage": "release",
+              "path": null,
+              "url": "https://github.com/klaus2918/public-tools/releases/download/op-skills-pack-v1.0.5/op-skills-pack-1.0.5-any-any.zip"
             }
           ]
         }
