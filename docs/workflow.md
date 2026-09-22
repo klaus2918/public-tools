@@ -38,9 +38,9 @@ node scripts/res-publish.mjs inbox/WenzFlow-1.0.15.exe --no-verify-download
 | `--version` | 版本号 | 从文件名解析 |
 | `--platform` | 平台 | windows |
 | `--arch` | 架构 | x64 |
-| `--variant` | 变体 | setup |
+| `--variant` | 变体 | 从文件名解析；不传则文件名不含变体段 |
 | `--category` | 分类 | installer |
-| `--desc` | 描述 | 读取 `inbox/.desc.txt` |
+| `--desc` / `--desc-file` | 描述 | 读取 `inbox/.desc.txt`（可用 `--desc-file <文件>` 指向专用描述文件） |
 | `--no-push` | 只提交不推送 | false |
 | `--no-prune` | 不自动 prune | false |
 | `--no-verify-download` | 不实测下载 | false |
@@ -51,6 +51,15 @@ node scripts/res-publish.mjs inbox/WenzFlow-1.0.15.exe --no-verify-download
 - 退化格式：`WenzFlow-1.0.15.exe`（识别 slug + version，其余用默认值）
 
 **幂等保护**：同 `id + version` 已存在时 `publish` 默认拒绝，需显式 `--force`。
+
+**承载方式**（按文件大小自动判定，阈值见 `registry/config.json → storage.light_asset_max_bytes`，默认 20 MB）：
+
+| 承载 | 条件 | 落点 | 脚本输出 |
+|------|------|------|----------|
+| `release` | 大于阈值（安装包等） | GitHub Releases（tag `{id}-v{version}`） | Release 链接 |
+| `git` | 小于等于阈值（技能包、小工具） | `assets/<category>/<id>/<version>/` | assets 目录 |
+
+**失败可重入**：推送失败不会中断流程（提示后继续），本地提交保留，网络恢复后 `git push origin main` 即可；同一版本重复执行会被幂等拒绝，不会重复上传。
 
 ## 一、发布新资源（手动步骤）
 
