@@ -1,8 +1,44 @@
 {
-  "generated_at": "2026-09-21T20:00:31+08:00",
+  "generated_at": "2026-09-22T09:22:17+08:00",
   "repo": "klaus2918/public-tools",
-  "count": 1,
+  "count": 2,
   "resources": [
+    {
+      "id": "op-skills-pack",
+      "name": "op-skills-pack",
+      "category": "toolchain",
+      "subcategory": null,
+      "description": "op 体系技能包（跨平台分发，含全部 skill 的纯净安装包与多端同步脚本）",
+      "status": "active",
+      "tags": [],
+      "keywords": [],
+      "latest_version": "1.0.5",
+      "versions": [
+        {
+          "version": "1.0.5",
+          "channel": "stable",
+          "released_at": "2026-09-22",
+          "latest": true,
+          "storage": "git",
+          "release_tag": null,
+          "rev": 1,
+          "files": [
+            {
+              "filename": "op-skills-pack-1.0.5-any-any.zip",
+              "kind": "archive",
+              "platform": "any",
+              "arch": "any",
+              "size": 763675,
+              "sha256": "d2d537b4bdd4f80ebe057b8d398112609f9372e92132a6750eded25502b59f65",
+              "storage": "git",
+              "path": "assets/toolchain/op-skills-pack/1.0.5/op-skills-pack-1.0.5-any-any.zip",
+              "url": "https://raw.githubusercontent.com/klaus2918/public-tools/main/assets/toolchain/op-skills-pack/1.0.5/op-skills-pack-1.0.5-any-any.zip"
+            }
+          ]
+        }
+      ],
+      "manifest": "registry/resources/toolchain/op-skills-pack.json"
+    },
     {
       "id": "wenzflow",
       "name": "wenzflow",
