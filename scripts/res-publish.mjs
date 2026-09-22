@@ -18,9 +18,9 @@
  *   --version <ver>      版本号（默认从文件名解析）
  *   --platform <p>       平台（默认 windows）
  *   --arch <a>           架构（默认 x64）
- *   --variant <v>        变体（默认 setup）
+ *   --variant <v>        变体（可选，如 setup / portable；不传则文件名不含变体段）
  *   --category <cat>     分类（默认 installer）
- *   --desc <text>        描述（默认读取 inbox/.desc.txt）
+ *   --desc <text>        描述（或 --desc-file <文件>；默认读取 inbox/.desc.txt）
  *   --no-push            只提交不推送
  *   --no-prune           不自动 prune
  *   --no-verify-download 不实测下载
@@ -166,18 +166,23 @@ function resolveFile(args) {
   const version = args.version || (parsed?.version) || '';
   const platform = args.platform || (parsed?.platform) || 'windows';
   const arch = args.arch || (parsed?.arch) || 'x64';
-  const variant = args.variant ?? (parsed?.variant) ?? 'setup';
+  const variant = args.variant !== undefined
+    ? (args.variant === 'none' ? null : args.variant)
+    : (parsed?.variant ?? null);
 
   if (!id) { bad('无法识别 --id，请用 --id 指定'); process.exit(1); }
   if (!version) { bad('无法识别 --version，请用 --version 指定'); process.exit(1); }
 
-  // 描述：优先 --desc，其次 inbox/.desc.txt，最后默认
+  // 描述：优先 --desc，其次 --desc-file 指定的文件，再退到 inbox/.desc.txt
   let desc = args.desc;
-  if (!desc) {
-    const descFile = path.join(ROOT, 'inbox', '.desc.txt');
-    if (fs.existsSync(descFile)) {
-      desc = fs.readFileSync(descFile, 'utf8').replace(/^\uFEFF/, '').trim();
-    }
+  let descFile = args.descFile || null;
+  if (!desc && !descFile && fs.existsSync(path.join(ROOT, 'inbox', '.desc.txt'))) {
+    descFile = path.join('inbox', '.desc.txt');
+  }
+  if (!desc && descFile) {
+    const absDesc = path.resolve(ROOT, descFile);
+    if (fs.existsSync(absDesc)) desc = fs.readFileSync(absDesc, 'utf8').replace(/^\uFEFF/, '').trim();
+    else warn(`描述文件不存在，改用默认描述：${descFile}`);
   }
   desc = desc || `${id} 资源`;
 
@@ -187,7 +192,7 @@ function resolveFile(args) {
   console.log(`  id=${id}  version=${version}  platform=${platform}  arch=${arch}  variant=${variant || '(none)'}`);
   console.log(`  category=${category}  desc=${desc.slice(0, 50)}${desc.length > 50 ? '…' : ''}`);
 
-  return { abs, basename, id, version, platform, arch, variant, category, desc };
+  return { abs, basename, id, version, platform, arch, variant, category, desc, descFile };
 }
 
 /** 步骤2：发布（res publish） */
@@ -200,9 +205,10 @@ function doPublish(info) {
     '--version', info.version,
     '--platform', info.platform,
     '--arch', info.arch,
-    '--desc-file', path.join('inbox', '.desc.txt'),
   ];
   if (info.variant) args.push('--variant', info.variant);
+  if (info.descFile) args.push('--desc-file', info.descFile);
+  else args.push('--desc', info.desc);
 
   const out = run('node', { args: [RES, ...args] });
   console.log(out);
@@ -226,8 +232,8 @@ function doVerify(info) {
     if (!fs.existsSync(dlDir)) fs.mkdirSync(dlDir, { recursive: true });
     try {
       const get = run('node', { args: [RES, 'get', info.id, '--to', dlDir, '--verify'], timeout: 600_000 });
-      console.log(get);
-      ok('实测下载通过');
+      if (get) console.log(get);
+      if (!DRY_RUN) ok('实测下载通过');
     } finally {
       if (fs.existsSync(dlDir)) fs.rmSync(dlDir, { recursive: true, force: true });
     }
@@ -245,7 +251,7 @@ function doSecurityScan(stagedFiles) {
         args: [...PY.split(' ').slice(1), '-X', 'utf8', SCAN_SCRIPT],
         timeout: 60_000,
       });
-      ok('敏感信息扫描通过');
+      if (!DRY_RUN) ok('敏感信息扫描通过');
     } catch {
       bad('敏感信息扫描失败，请修复后再提交');
       process.exit(1);
@@ -271,11 +277,28 @@ function doSecurityScan(stagedFiles) {
   ok(`文本校验通过（${jsonFiles.length} 个 JSON + ${stagedFiles.length - jsonFiles.length} 个其他）`);
 }
 
+/** 从清单读取该版本的 storage（release / git），用于生成准确的提交信息与输出 */
+function readStorage(info) {
+  try {
+    const resFile = path.join(ROOT, 'registry', 'resources', info.category, `${info.id}.json`);
+    const resJson = JSON.parse(fs.readFileSync(resFile, 'utf8'));
+    const v = (resJson.versions || []).find((x) => x.version === info.version);
+    return v?.storage || 'release';
+  } catch {
+    return 'release';
+  }
+}
+
 /** 步骤5：提交（git add + commit） */
 function doCommit(info) {
   step(5, 'Git 提交');
 
-  git(['add', 'registry']);
+  git(['add', 'registry', 'assets']);
+
+  if (DRY_RUN) {
+    warn('DRY-RUN：跳过提交');
+    return null;
+  }
 
   const status = git(['status', '--short']);
   if (!status) {
@@ -283,16 +306,17 @@ function doCommit(info) {
     return null;
   }
 
-  // 自动生成 commit message
-  const date = new Date().toISOString().slice(0, 10);
+  // 自动生成 commit message（storage 从清单读取，release / git 两种承载分别措辞）
+  const storage = info.storage || 'release';
   const msg = [
-    `chore(${info.id}): 【新增】${info.version} 安装包并切换 latest @AI G`,
+    `chore(${info.id}): 【新增】${info.version} 并切换 latest @AI G`,
     '',
-    `- Release tag ${info.id}-v${info.version}，资产 ${info.basename}`,
-    `- 清单新增 ${info.version} 条目：${info.platform}/${info.arch}/${info.variant || '无变体'}、storage=release`,
+    storage === 'release'
+      ? `- Release tag ${info.id}-v${info.version}，资产 ${info.basename}`
+      : `- 入库 assets/${info.category}/${info.id}/${info.version}/，文件 ${info.basename}`,
+    `- 清单新增 ${info.version} 条目：${info.platform}/${info.arch}/${info.variant || '无变体'}、storage=${storage}`,
     `- 同 channel 的 latest 由前版切至 ${info.version}`,
     `- 校验：res doctor 通过；res verify --id ${info.id} 通过`,
-    `- 日期：${date}`,
   ].join('\n');
 
   // 写入临时 commit message 文件
@@ -315,8 +339,8 @@ function doPush() {
   step(6, '推送到远端');
   try {
     const out = git(['push', 'origin', 'main']);
-    console.log(out);
-    ok('推送成功');
+    if (out) console.log(out);
+    if (!DRY_RUN) ok('推送成功');
     return true;
   } catch (e) {
     bad(`推送失败：${e.message}`);
@@ -338,8 +362,12 @@ function doAutoPrune(info) {
     keep = cfg?.storage?.keep_releases ?? 3;
   } catch { /* 使用默认值 */ }
 
-  // 读取清单统计版本数
+  // 读取清单统计版本数（dry-run 或首次发布时清单可能尚未生成）
   const resFile = path.join(ROOT, 'registry', 'resources', info.category, `${info.id}.json`);
+  if (!fs.existsSync(resFile)) {
+    ok('清单尚未生成（dry-run 或首次发布），跳过版本保留检查');
+    return;
+  }
   const res = JSON.parse(fs.readFileSync(resFile, 'utf8'));
   const liveVersions = (res.versions || []).filter(v =>
     v.storage !== 'release-pruned' && v.files?.length > 0
@@ -397,11 +425,15 @@ async function main() {
 
   // 发布
   doPublish(info);
+  info.storage = readStorage(info);
 
   // 校验
   doVerify(info);
 
-  // 安全扫描（对暂存区的 registry 文件）
+  // 先暂存变更（安全门禁扫描的是暂存区；assets 仅在 git 承载时存在）
+  git(['add', 'registry', 'assets']);
+
+  // 安全扫描（对暂存区的 registry / assets 文件）
   const staged = ['registry/CATALOG.md', 'registry/index.json', 'registry/latest.json',
     `registry/resources/${info.category}/${info.id}.json`].filter(f => fs.existsSync(path.join(ROOT, f)));
   doSecurityScan(staged);
@@ -418,8 +450,16 @@ async function main() {
   // 完成
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(c(1, '\n═══ 完成 ═══'));
+  if (DRY_RUN) {
+    ok(`${info.id} ${info.version} 演练完成（dry-run，未做任何变更）`);
+    return;
+  }
   ok(`${info.id} ${info.version} 发布成功（${elapsed}s）`);
-  console.log(`  Release：https://github.com/klaus2918/public-tools/releases/tag/${info.id}-v${info.version}`);
+  if (info.storage === 'release') {
+    console.log(`  Release：https://github.com/klaus2918/public-tools/releases/tag/${info.id}-v${info.version}`);
+  } else {
+    console.log(`  资产：assets/${info.category}/${info.id}/${info.version}/`);
+  }
   console.log(`  清单：registry/resources/${info.category}/${info.id}.json`);
 }
 
