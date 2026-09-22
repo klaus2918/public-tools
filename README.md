@@ -41,6 +41,19 @@ node scripts/res.mjs get wenzflow --version 1.0.8 --to .\bin
 
 下载链路：本地缓存命中 → 直连 → 镜像回退（`direct-first`）；断点续传；结束校验 SHA256。
 
+### 一键发布（推荐）
+
+```powershell
+# 文件放 inbox\ 后一条命令走完全流程：发布 → 体检/校验 → 安全门禁 → 提交 → 推送 → 按需 prune
+node scripts/res-publish.mjs inbox\WenzFlow-1.0.15.exe
+
+# 文件名不规范时补参数；--dry-run 只预览不执行
+node scripts/res-publish.mjs inbox\op-skills-pack-1.0.5.zip --id op-skills-pack `
+     --version 1.0.5 --platform any --arch any --category toolchain --dry-run
+```
+
+> 详细参数与承载方式（Release / assets）见 `docs/workflow.md`「一键发布」章节。
+
 ### 发布（上传新资源）
 
 ```powershell
