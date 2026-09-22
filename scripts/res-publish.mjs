@@ -20,6 +20,7 @@
  *   --arch <a>           架构（默认 x64）
  *   --variant <v>        变体（可选，如 setup / portable；不传则文件名不含变体段）
  *   --category <cat>     分类（默认 installer）
+ *   --storage <s>        承载（git | release；默认按文件大小自动判定）
  *   --desc <text>        描述（或 --desc-file <文件>；默认读取 inbox/.desc.txt）
  *   --no-push            只提交不推送
  *   --no-prune           不自动 prune
@@ -187,12 +188,13 @@ function resolveFile(args) {
   desc = desc || `${id} 资源`;
 
   const category = args.category || 'installer';
+  const storage = args.storage || null; // git | release；null = 由 res.mjs 按大小自动判定
 
   console.log(`  文件：${basename}（${(fs.statSync(abs).size / 1024 / 1024).toFixed(2)} MB）`);
   console.log(`  id=${id}  version=${version}  platform=${platform}  arch=${arch}  variant=${variant || '(none)'}`);
-  console.log(`  category=${category}  desc=${desc.slice(0, 50)}${desc.length > 50 ? '…' : ''}`);
+  console.log(`  category=${category}  storage=${storage || '(auto)'}  desc=${desc.slice(0, 50)}${desc.length > 50 ? '…' : ''}`);
 
-  return { abs, basename, id, version, platform, arch, variant, category, desc, descFile };
+  return { abs, basename, id, version, platform, arch, variant, category, storage, desc, descFile };
 }
 
 /** 步骤2：发布（res publish） */
@@ -207,6 +209,7 @@ function doPublish(info) {
     '--arch', info.arch,
   ];
   if (info.variant) args.push('--variant', info.variant);
+  if (info.storage) args.push('--storage', info.storage);
   if (info.descFile) args.push('--desc-file', info.descFile);
   else args.push('--desc', info.desc);
 
