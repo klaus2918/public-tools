@@ -388,7 +388,9 @@ function doAutoPrune(info) {
   console.log(preview);
 
   // 确认并执行
-  run('node', { args: [RES, 'prune', '--id', info.id, '--apply'] });
+  const applied = run('node', { args: [RES, 'prune', '--id', info.id, '--apply'] });
+  if (applied) console.log(applied);
+  ok(`prune 已执行（keep=${keep}）`);
 
   // 提交 prune 变更
   git(['add', 'registry']);
