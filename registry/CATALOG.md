@@ -1,12 +1,12 @@
 # 资源总览
 
-> 由 `node scripts/res.mjs index` 自动生成，请勿手改。生成时间：2026-09-23T20:41:38+08:00　资源数：2
+> 由 `node scripts/res.mjs index` 自动生成，请勿手改。生成时间：2026-09-28T08:56:50+08:00　资源数：2
 
 ## installer（1）
 
 | id | 名称 | 最新版本 | 平台 | 大小 | 承载 | 取用 |
 |----|------|----------|------|------|------|------|
-| `wenzflow` | wenzflow | 1.0.16 | windows/x64 | 56.11 MB | release | `res get wenzflow` |
+| `wenzflow` | wenzflow | 1.0.18 | windows/x64 | 56.21 MB | release | `res get wenzflow` |
 
 ## toolchain（1）
 
