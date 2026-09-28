@@ -1,6 +1,6 @@
 # 资源总览
 
-> 由 `node scripts/res.mjs index` 自动生成，请勿手改。生成时间：2026-09-28T08:56:50+08:00　资源数：2
+> 由 `node scripts/res.mjs index` 自动生成，请勿手改。生成时间：2026-09-28T08:57:00+08:00　资源数：2
 
 ## installer（1）
 

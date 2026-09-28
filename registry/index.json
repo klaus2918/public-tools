@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T08:56:50+08:00",
+  "generated_at": "2026-09-28T08:57:00+08:00",
   "repo": "klaus2918/public-tools",
   "count": 2,
   "resources": [
@@ -165,7 +165,7 @@
           "channel": "stable",
           "released_at": "2026-09-19",
           "latest": false,
-          "storage": "release",
+          "storage": "release-pruned",
           "release_tag": "wenzflow-v1.0.14",
           "rev": 1,
           "files": [
@@ -176,7 +176,7 @@
               "arch": "x64",
               "size": 58520878,
               "sha256": "e2b5c95d5b6c2b38e081cc7f3ebe108ad252041b255d9b7bdefed957a7bc8509",
-              "storage": "release",
+              "storage": "release-pruned",
               "path": null,
               "url": "https://github.com/klaus2918/public-tools/releases/download/wenzflow-v1.0.14/wenzflow-1.0.14-windows-x64-setup.exe"
             }
