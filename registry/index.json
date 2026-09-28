@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-28T08:57:00+08:00",
+  "generated_at": "2026-09-28T09:01:15+08:00",
   "repo": "klaus2918/public-tools",
-  "count": 2,
+  "count": 3,
   "resources": [
     {
       "id": "op-skills-pack",
@@ -250,6 +250,42 @@
         }
       ],
       "manifest": "registry/resources/installer/wenzflow.json"
+    },
+    {
+      "id": "wenzmark",
+      "name": "wenzmark",
+      "category": "installer",
+      "subcategory": null,
+      "description": "WenzMark 桌面客户端（Windows x64 安装包，构建号 9738）",
+      "status": "active",
+      "tags": [],
+      "keywords": [],
+      "latest_version": "1.20.0",
+      "versions": [
+        {
+          "version": "1.20.0",
+          "channel": "stable",
+          "released_at": "2026-09-28",
+          "latest": true,
+          "storage": "release",
+          "release_tag": "wenzmark-v1.20.0",
+          "rev": 1,
+          "files": [
+            {
+              "filename": "wenzmark-1.20.0-windows-x64-setup.exe",
+              "kind": "installer",
+              "platform": "windows",
+              "arch": "x64",
+              "size": 41504451,
+              "sha256": "e929867db8987bbdc8b9feb7cda03bf67afea7dcf0fa4c7360f7ab6f1ac7cb75",
+              "storage": "release",
+              "path": null,
+              "url": "https://github.com/klaus2918/public-tools/releases/download/wenzmark-v1.20.0/wenzmark-1.20.0-windows-x64-setup.exe"
+            }
+          ]
+        }
+      ],
+      "manifest": "registry/resources/installer/wenzmark.json"
     }
   ]
 }
