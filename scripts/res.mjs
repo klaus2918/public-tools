@@ -564,7 +564,12 @@ async function cmdPublish(args) {
     v.storage = 'release';
     file.url = fill(cfg.repo.release_url_tpl, { tag, filename });
     file.mirrors = (cfg.mirrors.release_prefixes || []).filter((p) => p.enabled && p.tpl.includes('{url}')).map((p) => fill(p.tpl, { url: file.url, filename }));
-    if (args['no-upload']) warn('--no-upload：已登记清单但未上传资产，URL 暂不可用');
+    if (typeof args['asset-id'] === 'string' && args['asset-id']) {
+      file.asset_id = Number(args['asset-id']);
+      if (!Number.isFinite(file.asset_id)) die(`--asset-id 非法：${args['asset-id']}`);
+      v.release_id = typeof args['release-id'] !== 'undefined' && args['release-id'] !== '' ? Number(args['release-id']) : v.release_id;
+      ok(`登记已有 Release 资产：${tag}/${filename} asset_id=${file.asset_id}`);
+    } else if (args['no-upload']) warn('--no-upload：已登记清单但未上传资产，URL 暂不可用');
     else {
       const release = await ensureRelease(cfg, tag, `${r.name} ${version}`, `${id} ${version}（由 res.mjs 发布）`);
       const uploaded = await uploadAsset(cfg, release, abs, filename);

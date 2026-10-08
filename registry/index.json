@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-28T21:18:32+08:00",
+  "generated_at": "2026-10-08T18:00:24+08:00",
   "repo": "klaus2918/public-tools",
-  "count": 3,
+  "count": 4,
   "resources": [
     {
       "id": "op-skills-pack",
@@ -82,6 +82,48 @@
         }
       ],
       "manifest": "registry/resources/toolchain/op-skills-pack.json"
+    },
+    {
+      "id": "temurin-jdk",
+      "name": "Temurin JDK",
+      "category": "toolchain",
+      "subcategory": null,
+      "description": "Eclipse Temurin OpenJDK 21.0.12.1+1 LTS（Windows x64，HotSpot JVM，免安装 zip 归档）",
+      "status": "active",
+      "tags": [
+        "jdk",
+        "java",
+        "temurin",
+        "lts",
+        "toolchain"
+      ],
+      "keywords": [],
+      "latest_version": "21.0.12.1",
+      "versions": [
+        {
+          "version": "21.0.12.1",
+          "channel": "stable",
+          "released_at": "2026-10-08",
+          "latest": true,
+          "storage": "release",
+          "release_tag": "temurin-jdk-v21.0.12.1",
+          "rev": 1,
+          "files": [
+            {
+              "filename": "temurin-jdk-21.0.12.1-windows-x64-hotspot.zip",
+              "kind": "archive",
+              "platform": "windows",
+              "arch": "x64",
+              "size": 205073461,
+              "sha256": "f9d6e191ab098c0d416e7d588a24420a8621cd2f4720dab2459b8b7b2d2d8b4e",
+              "storage": "release",
+              "path": null,
+              "url": "https://github.com/klaus2918/public-tools/releases/download/temurin-jdk-v21.0.12.1/temurin-jdk-21.0.12.1-windows-x64-hotspot.zip"
+            }
+          ]
+        }
+      ],
+      "manifest": "registry/resources/toolchain/temurin-jdk.json"
     },
     {
       "id": "wenzflow",
