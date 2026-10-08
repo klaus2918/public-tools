@@ -1,8 +1,49 @@
 {
-  "generated_at": "2026-10-08T18:00:24+08:00",
+  "generated_at": "2026-10-08T18:13:57+08:00",
   "repo": "klaus2918/public-tools",
-  "count": 4,
+  "count": 5,
   "resources": [
+    {
+      "id": "kkfileview",
+      "name": "kkFileView",
+      "category": "portable",
+      "subcategory": null,
+      "description": "kkFileView 5.0.2 在线文件预览服务（Java 跨平台，免安装 zip 发行包；支持 Office、PDF、CAD、图片、视频、压缩包等 20+ 文件格式的网页预览，内置示例站点，需 JRE 18+ 运行）",
+      "status": "active",
+      "tags": [
+        "kkfileview",
+        "preview",
+        "office",
+        "portable"
+      ],
+      "keywords": [],
+      "latest_version": "5.0.2",
+      "versions": [
+        {
+          "version": "5.0.2",
+          "channel": "stable",
+          "released_at": "2026-10-08",
+          "latest": true,
+          "storage": "release",
+          "release_tag": "kkfileview-v5.0.2",
+          "rev": 1,
+          "files": [
+            {
+              "filename": "kkfileview-5.0.2-any-any.zip",
+              "kind": "archive",
+              "platform": "any",
+              "arch": "any",
+              "size": 384190614,
+              "sha256": "b6b94192806027aa64fea5281b3d387f841c06397260d5ff52e591e468e0746a",
+              "storage": "release",
+              "path": null,
+              "url": "https://github.com/klaus2918/public-tools/releases/download/kkfileview-v5.0.2/kkfileview-5.0.2-any-any.zip"
+            }
+          ]
+        }
+      ],
+      "manifest": "registry/resources/portable/kkfileview.json"
+    },
     {
       "id": "op-skills-pack",
       "name": "op-skills-pack",

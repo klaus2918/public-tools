@@ -1,7 +1,34 @@
 {
-  "generated_at": "2026-10-08T18:00:24+08:00",
+  "generated_at": "2026-10-08T18:13:57+08:00",
   "repo": "klaus2918/public-tools",
   "resources": {
+    "kkfileview": {
+      "id": "kkfileview",
+      "name": "kkFileView",
+      "category": "portable",
+      "subcategory": null,
+      "version": "5.0.2",
+      "channel": "stable",
+      "released_at": "2026-10-08",
+      "storage": "release",
+      "files": [
+        {
+          "filename": "kkfileview-5.0.2-any-any.zip",
+          "kind": "archive",
+          "platform": "any",
+          "arch": "any",
+          "size": 384190614,
+          "sha256": "b6b94192806027aa64fea5281b3d387f841c06397260d5ff52e591e468e0746a",
+          "url": "https://github.com/klaus2918/public-tools/releases/download/kkfileview-v5.0.2/kkfileview-5.0.2-any-any.zip",
+          "mirrors": [
+            "https://github.com/klaus2918/public-tools/releases/download/kkfileview-v5.0.2/kkfileview-5.0.2-any-any.zip",
+            "https://gh-proxy.com/https://github.com/klaus2918/public-tools/releases/download/kkfileview-v5.0.2/kkfileview-5.0.2-any-any.zip"
+          ],
+          "path": null,
+          "storage": "release"
+        }
+      ]
+    },
     "op-skills-pack": {
       "id": "op-skills-pack",
       "name": "op-skills-pack",

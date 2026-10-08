@@ -1,0 +1,48 @@
+{
+  "id": "kkfileview",
+  "name": "kkFileView",
+  "category": "portable",
+  "subcategory": null,
+  "description": "kkFileView 5.0.2 在线文件预览服务（Java 跨平台，免安装 zip 发行包；支持 Office、PDF、CAD、图片、视频、压缩包等 20+ 文件格式的网页预览，内置示例站点，需 JRE 18+ 运行）",
+  "keywords": [],
+  "homepage": null,
+  "license": null,
+  "status": "active",
+  "owner": "klaus2918",
+  "tags": [
+    "kkfileview",
+    "preview",
+    "office",
+    "portable"
+  ],
+  "notes": "",
+  "versions": [
+    {
+      "version": "5.0.2",
+      "channel": "stable",
+      "released_at": "2026-10-08",
+      "latest": true,
+      "storage": "release",
+      "files": [
+        {
+          "filename": "kkfileview-5.0.2-any-any.zip",
+          "orig_name": "kkFileView-5.0.2.zip",
+          "kind": "archive",
+          "platform": "any",
+          "arch": "any",
+          "size": 384190614,
+          "sha256": "b6b94192806027aa64fea5281b3d387f841c06397260d5ff52e591e468e0746a",
+          "added_at": "2026-10-08T18:13:47+08:00",
+          "url": "https://github.com/klaus2918/public-tools/releases/download/kkfileview-v5.0.2/kkfileview-5.0.2-any-any.zip",
+          "mirrors": [
+            "https://github.com/klaus2918/public-tools/releases/download/kkfileview-v5.0.2/kkfileview-5.0.2-any-any.zip",
+            "https://gh-proxy.com/https://github.com/klaus2918/public-tools/releases/download/kkfileview-v5.0.2/kkfileview-5.0.2-any-any.zip"
+          ],
+          "asset_id": 621428430
+        }
+      ],
+      "release_tag": "kkfileview-v5.0.2",
+      "release_id": 406526029
+    }
+  ]
+}
